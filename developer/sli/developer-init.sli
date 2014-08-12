@@ -1,0 +1,43 @@
+/*
+ *  developer-init.sli
+ *
+ *  This file is part of NEST
+ *
+ *  Copyright (C) 2004-2008 by
+ *  The NEST Initiative
+ *
+ *  See the file AUTHORS for details.
+ *
+ *  Permission is granted to compile and modify
+ *  this file for non-commercial use.
+ *  See the file LICENSE for details.
+ *
+ */
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% SLI wrappers for functions defined in developermodule
+%
+% Author: Jochen Martin Eppler
+% Date: September 2008
+%
+
+/developer-init /SLI ($Revision: 7766 $) provide-component
+/developer-init /C++ ($Revision: 7766 $) require-component
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+statusdict /have_gsl get 
+{
+  /RandomConnectSynfireInDegreeOutdegree_a_i_i_i {
+    /Connect /synapse_model GetOption
+    RandomConnectSynfireInDegreeOutdegree_a_i_i_i_l
+  } def
+
+  /RandomConnectSynfireInDegreeOutdegree trie
+  [/arraytype /integertype /integertype /integertype /literaltype] 
+    /RandomConnectSynfireInDegreeOutdegree_a_i_i_i_l load addtotrie
+  [/arraytype /integertype /integertype /integertype] 
+    /RandomConnectSynfireInDegreeOutdegree_a_i_i_i load addtotrie
+  def
+} if

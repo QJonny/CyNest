@@ -1,0 +1,33 @@
+
+Scripts demonstraiting and benchmarking the inh_gamma_generator(_ng):
+
+bench.py - a benchmark using inh_gamma_generator, and multiple generator 
+           objects for multiple realizations.
+bench_ng.py - equivalent implementation of bench.py using
+              inh_gamma_generator _S selective connections and the 
+	      independent multiple targets feature
+
+bench_poisson.py - single poisson generators provide independent realizations to multiple targets.
+
+bench_poisson_parrot.py - All Poisson processes are piped through a parrot neuron to allow STDP
+                          and dynamic synapses
+
+bench_poisson_single.py - All Poisson processes are pooled into one with a single aggregated rate.
+
+NB: For STDP or dynamic synapses, one must use either bench_poisson_parrot.py, bench_ng.py, or bench.py.
+bench_ng.py is 13 times faster than bench_poisson_parrot.py.
+bench_poisson_parrot.py is only 1.3 times faster than bench.py.
+bench_ng.py requires _S (selective) connectors.
+
+test_ng.py - comparison of inh_gamma_generator and inh_gamma_generator_ng
+             spike trains.
+
+
+ac_gamma_psth.py - compute the PSTH for a sinusoidally modulated
+                   inhomogeneous gamma renewal process with a!=1.0.
+
+step_gamma_psth.py - compute the PSTH for a stepped inhomogeneous 
+                     gamma renewal process with a!=1.0.
+
+
+

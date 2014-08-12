@@ -1,0 +1,163 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 2.0 (4/12/12)
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+% Original header:
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{graphicx} % Allows the inclusion of images
+
+\title{cmpneuron User Documentation} % Title
+
+\author{Jonny \textsc{Quarta}} % Author name
+
+\date{\today} % Specify a date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+\section{Introduction}
+The cmpneuron tool has been created in order to allow users to easily write their custom neuron models in python, without any knowledge of C++.\\
+The first important thing to know is that for correct behaviour, at least Cython 0.18 must be installed.\\ \\
+You can invoke the tool by typing\\
+\textbf{cmpneuron [filename]}\\
+or \\
+ \textbf{cmpneuron [option]} \\
+where \emph{filename} means the python file containing the neuron class and \emph{option} can be
+\begin{itemize}
+\item --help : Prints a little help
+\item --doc  : Opens this documentation
+\end{itemize}
+
+There are some important rules to take into account when compiling a new neuron:
+\begin{itemize}
+\item The terminal must be situated in the same folder as the python file (or files).
+\item \emph{filename} must be written without the extension (ex: myneuron and NOT myneuron.py)
+\end{itemize}
+
+\section{Writing a new neuron}
+This section deals with the basic operations one has to perform in order to write a custom neuron. The neuron class has to follow a certain structure, which will be explained during the construction of a little example. \\
+Let assume we want to create a new custom neuron, which we will call \textbf{test\_neuron}. Then we create a new file, \emph{test\_neuron.py}. \textbf{Note that the file name and the neuron name has to be the same} (in this case test\_neuron). Once the file is created, we can put our skeleton code:
+\begin{verbatim}
+class test_neuron(Neuron):
+    def __init__(self):
+        pass
+    
+    def __dealloc__(self):
+        pass
+
+    def calibrate(self):
+        pass
+
+    def setStatus(self):
+        pass
+
+    def getStatus(self):
+        pass
+
+    def update(self):
+        pass
+\end{verbatim}
+As we can see, the test\_neuron class extends from Neuron. \textbf{This is mandatory}. In addition, some methods can be overwritten (these are situated in the base class Neuron). Method overwriting is optional, however at least calibrate and update should be changed, otherwise the neuron will be useless.\\ \\
+Here's a brief description of every method :
+\begin{itemize}
+\item \_\_init\_\_ : this is the constructor. Here's should be declared and initialized the totality of internal members the neuron will use.
+\item \_\_dealloc\_\_ : this is the destructor.
+\item getStatus : this method is called whenever the user calls the CyNEST function \textbf{ cynest.GetStatus(...)} in the python terminal. It is used in very special cases, hence optional.
+\item setStatus : this method is called whenever the user calls the CyNEST function \textbf{ cynest.SetStatus(...)} or \textbf{cynest.SetDefaults(...)} in the python terminal. This could be usefull if the neuron has to adapt some other members with respect to special ones.
+\item calibrate : this method is called before the simulation start. Its purpose is to adjust the various neuron parameters before the simulation.
+\item update : this is the most important method and is called repeatedly during a simulation. Its purpose is to update the various neuron parameters according to the inputs (everything will be explained later).
+\end{itemize}
+One very good point is that python can be used in almost every fashion, however a very important fact has to be understood: cmpneuron is based on cython, therefore every cython limitation translates to a cmpneuron limitation. \\
+Aside from that, one could even write cython code, which would be correctly compiled. The only crucial thing is to keep the base neuron class as previously explained. Of course, custom members can be created (with some limitations, which will be explained later), other python scripts can be imported and other classes can be written in the same base file.
+
+\section{Restrictions}
+As everything on Earth, nothing is perfect and few restrictions have to be followed in order to write compilable code. Here's the list:
+\begin{itemize}
+\item Some special neuron members are already defined and their type cannot be changed and their values should not be updated (not always true, see next section).
+\item If the neuron declares a new member of custom type (maybe defined in another file), its name must be written with an underscore at the beginning (ex: \_myRectangle and NOT myRectangle, for an object of Rectangle type). This "makes" the parameter private and CyNEST will not try to pass it to the python terminal (custom objects cannot be translated into C++ objects). However, if the member has a builtin type (integer, boolean, double, dictionary, list, etc...), there is no problem.
+\item Every other cython limitation also applies.
+\end{itemize}
+
+\section{Standard Parameters and Special Functions}
+This section deals with the communication between the custom neuron and other ones.\\
+\subsection*{Standard Parameters}
+As one could imagine, not everything can be done when writing a custom neuron, compared to writing a static C++ compiled with CyNEST neuron. In particular, events cannot be accessed (SpikeEvent, CurrentEvent, etc...).\\
+However, these events are handled in a very general way, providing almost the same confort as normal neuron do. In particular, some standard parameters have been declared and are updated before every call to to \emph{update} method. Here's the list:
+\begin{itemize}
+\item ex\_spikes : this is the number of excitatory spikes incoming at a certain point. Note that this is a double value, because every spike in automatically multiplied by it's weight, which couldn't be an integer.
+\item in\_spikes : this is the number of inhibitory spikes incoming at a certain point. Note that this is a double value, because every spike in automatically multiplied by it's weight, which couldn't be an integer. Also note that the value is always negative, because the weight are. If one want to sum all the spikes, he should write \emph{ex\_spikes + in\_spikes} and not \emph{ex\_spikes - in\_spikes}.
+\item currents : this is the currents upcoming at a certain point in time. This is also a double value.
+\item t\_lag : this integer value represents the current point in time (this would be the t variable of a function).
+\item spike : this is the only modifiable standard parameter. That's the neuron output and is an integer value (not a boolean one). Set it at 1 if the neuron spikes and 0 otherwise.
+\end{itemize}
+
+
+\subsection*{Special Functions}
+When writing a neuron, one could need some other special parameters concerning the way the simulation has been set. In a normal C++ neuron, the totality of thse values would be accessible from the Time and Scheduler classes (for more information about these classes, see the NEST official documentation), but these classes are not visible from the custom neuron side. 
+There is however a way in order to acces the most important values and the base Neuron class provides an entire list of methods (15 in total):
+\begin{itemize}
+\item get\_ms\_on\_resolution()
+
+\item get\_ms\_on\_tics(tics)
+
+\item get\_ms\_on\_steps(steps)
+
+\item get\_tics\_on\_resolution(self)
+
+\item get\_tics\_on\_steps(steps)
+
+\item get\_tics\_on\_ms(ms)
+   
+\item get\_tics\_on\_ms\_stamp(ms\_stamp)
+
+\item get\_steps\_on\_resolution()
+
+\item get\_steps\_on\_tics(tics)
+
+\item get\_steps\_on\_ms(ms)
+
+\item get\_steps\_on\_ms\_stamp(ms\_stamp)
+
+\item get\_modulo(value)
+
+\item get\_slice\_modulo(value)
+
+\item get\_min\_delay()
+
+\item get\_max\_delay()
+
+\end{itemize}
+
+As an example, writing \emph{self.get\_ms\_on\_resolution()} is the same as writing (in the NEST code, C++) \emph{Time::get\_resolution().get\_ms()} and \emph{self.get\_steps\_on\_ms(ms)} the same as \emph{Time(Time::ms(ms)).get\_steps()}. In addition, writing \emph{self.get\_min\_delay()} could be compared to the C++ \emph{Scheduler::get\_min\_delay()}.\\
+Note that calling these functions takes much time because the call spreads through many functions in order to achieve the Time or Scheduler classes. It is therefore advised to avoid these calls in the update method and to create variables instead.\\
+Also note that these special functions cannot be overwritten.
+
+\section{Adding the new neuron}
+After the custom neuron has been written and compiled, in order to be available to NEST, it has to be placed in a special location. Inside the main NEST directory, where the software has been installed, the new .so file must be placed in a folder named \emph{cython\_models}.\\
+\textbf{Note that maybe the folder doesn't exist}, in which case it must be created and the neuron placed inside.
+\end{document}

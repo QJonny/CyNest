@@ -1,0 +1,38 @@
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{graphicx} % Allows the inclusion of images
+\usepackage{url}
+
+\title{Python Interface for NEST \\ Project Description} % Title
+
+\author{Marc-Oliver \textsc{Gewaltig}} % Author name
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+
+NEST is a parallel and distributed simulation tool for neuronal systems used in the Blue Brain Project. A NEST simulation is configured in the interpreted language Python and executed by a high-performance simulation kernel, written in C++. NEST provides a set of pre-defined neuron models, but often users need to extend NEST with their own models. Currently, these have to be programmed in C++ and then NEST must be re-configured and re-compiled. This procedure requires considerable technical skills and is difficult and error prone for the typical NEST user. \\
+\\
+In this project, we seek to develop a Python based interface that allows users to develop new neuron models for NEST. Python provides a number of technologies to automatically generate, compile and link C/C++ extension modules. The most promising technology to be used in this project is Cython (www.cython.org), compiler which translates a superset of Python into C/C++ and then automatically generates a Python extension module. Moreover, Cython provides a powerful and yet easy to use interface between C/C++ and Python. There is already an experimental prototype which allows new neuron models to be configured in the interpreted domain specific language SLI. Here, we want to use the same strategy to generate native code.
+For this project, the candidate will benefit from good knowledge in compiler construction, automatic code optimization, as well as user interface design. 
+\\
+\\
+External references: \\
+\url{www.nest-initiative.org} \\
+\url{www.pyton.org} \\
+\url{www.cython.org}
+
+\end{document}

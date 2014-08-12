@@ -1,0 +1,32 @@
+#!/usr/bin/env python
+#
+# Setup script for the Python bindings to NEST (Pynest2)
+# 
+
+import sys, os
+import distutils.sysconfig as sysc
+from distutils.core import setup
+from distutils.core import Extension
+from Cython.Distutils import build_ext
+
+cxx                 = '@CXX@'
+
+# Change the compiler and linker:
+# replace first argumemnt with compiler-variable 'cxx'
+vars = sysc.get_config_vars()
+for key in ['CC','LDSHARED', 'CXX', 'LINKCC']:
+    value = vars[key].split()
+    value[0] = cxx
+    vars[key] = ' '.join(value)
+
+# the following compiler options are not accepted by newer g++ versions
+for opt in ["-Wstrict-prototypes", "-Wno-long-double", "-no-cpp-precomp"]:
+    vars["CFLAGS"]=sysc.get_config_var("CFLAGS").replace(opt, "")
+
+
+setup(name         = 'pynest2_api',
+      cmdclass     = { 'build_ext': build_ext},
+      ext_modules  = [Extension('pynest2_api',
+                                ['@PKGSRCDIR@/pynest2/nest/pynest2_api.pyx'],
+                                language="c++"
+                                 )])

@@ -1,0 +1,500 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 2.0 (4/12/12)
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+% Original header:
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{graphicx} % Allows the inclusion of images
+
+\title{Writing Customable Cython Neurons \\ Developer Documentation} % Title
+
+\author{Jonny \textsc{Quarta}} % Author name
+
+\date{\today} % Specify a date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+
+\section{Introduction}
+The NEST Simulator, which stands for Neural Simulation Tool, has been created with the purpose of enabling complex simulations of point-like neurons. There's a wide range of possible models, from the simple integrate and fire model, to the more complex Hodgkin-Huxley one.\\
+These neurons can be connected throught weighted connexions and their activity recorded using virtual tools (multimeter, spike detector, etc...).\\
+
+In the NEST code, every model extends from a parent class, implementing only basic functions, such as collecting the incoming spikes. The real model is written in the child classes, so that, using polymorphism, adding new neurons is accomplished relatively easily.\\
+However, each time one wants to add a new neuron, he has to write it in C++ (a difficult language) and recompile the whole project. This makes the tool not so flexible and slows down developpement time.\\
+That's why the need for a plugin system has arised. Since NEST provides an interface enabling the user to execute the simulator from a Python terminal, the system has to be designed in order to facilitate the python utilization.
+Therefore, this new feature should enable to easily write neurons and import them like normal python objects, these being automatically recognized and executed by NEST. In addition, since C++ is a difficult language, models should be written in a more scientific language such as Cython.\\ \\
+The purpose of this project is the creation of a plugin system having these features. This is accomplished using a relatively new technology, Cython. This special tool enables one to write Python code and compile it into C++ or writing cython code and interface it with Python.\\
+During the next sections, first the NEST structure will be presented, then a global description of the interface will be depicted. After that, more details are given, beginning with the Python side of the project, followed by the C++ side. Finally, performances are analyzed.
+
+\section{NEST Structure}
+The aim of this section is to enable the reader understanding the global NEST structure, which is essential in order to grasp the details of the new interface, presented in the next sections.\\
+Basically, NEST is composed of three major parts:
+\begin{itemize}
+\item The simulation kernel : this is the core of the system, enabling, among others, simulations, events scheduling, communication of neurons and activity recording. The C++ models are also situated in this part.
+\item SLI Interface : NEST is a high configurable simulator, therefore a powerfull language has been created in order to configure simulation properties, set experiment parameters, create neurons and connexions between them, ect... SLI is loosely based on PostScript, using a stack to put, manipulate and retrieve objects.
+\item CyNEST Interface : NEST can be used from a Python terminal, configuring it by calling very high functions, which will in turn call corresponding SLI commands. This interface can be accessed by just typing \emph{import cynest} in a Python terminal.
+\end{itemize}
+For more information, see the original documentation\\ (http://www.nest-initiative.org/index.php/Software:About\_NEST).
+
+\section{Global Interface Structure}
+This section deals with the global structure of the new interface between CyNEST and custom neurons. 
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.92\textwidth]{Ressources/Interface_Structure}
+\caption{Interface Structure}
+\end{center}
+\end{figure}
+
+Figure 1 shows that structure as a diagram. The key idea is quite simple: the user writes his models as .pyx files and imports them into CyNEST via the python terminal. Then, whenever he creates a new instance of a custom neuron, CyNEST will transform it into a C++ version and give it to the \emph{cython\_neuron.cpp} class, which will then call the corresponding methods (update, calibrate, etc...). Therefore, the C++ side will use the C/Python API in order to access the python object fields and methods.\\
+
+During the next sections, the most important regions of the diagram will be covered in much greater detail, so that the reader can have insight into the subtle choises and concepts that populate this innovative feature of NEST.
+
+
+
+\section{Python Side}
+This section focuses on the main operations the Python side has to accomplish in order to make the system work.\\
+
+\subsection{Base Neuron Class}
+First of all, the model has to be written (for details about how to wrtite new models, please consult the user documentation).\\
+However, it is important to know what structure the model relies on. This is the base, called \emph{Neuron} and located in the \emph{"installation folder"/include/Neuron.pyx} file, with the installation path being where CyNEST has been installed. This file contains the following code:
+\begin{verbatim}
+cdef class Neuron:
+    cdef object time_scheduler
+    # Standard Parameters
+    cdef double currents
+    ...
+    
+    def __cinit__(self):
+        pass
+
+    cpdef calibrate(self):
+        pass
+        
+    cpdef update(self):
+        pass
+        
+    ...
+
+       
+    # We convert the address of the variables into 
+    # long in order to extract the pointers
+
+    cpdef getPCurrents(self):
+        return <long>(&(self.currents))
+        
+    ...
+\end{verbatim}
+Note that not everything is shown.\\
+The class is composed of various parameters, whose usefullness will be discussed later, and  other functions, some of which have to be overwritten by the child model. These functions are \emph{calibrate}, \emph{update}, \emph{setStatus} and \emph{getStatus}. The other functions will be explained during the next sections.
+
+
+\subsection{Neuron Registration}
+Once the model has been completed, the user has to load it before any utilization. This process is called \textbf{neuron registration}.\\
+Indeed, the first thing to do is typing \emph{cynest.RegisterNeuron(...)}. This method will use a cython mechanism, called \textbf{pyximport}, to dinamically import and compile the .pyx file containing the custom model:
+\begin{verbatim}
+def RegisterNeuron(model_name):
+    exec("import " + model_name)
+    globals()[model_name] = locals()[model_name]
+    exec(model_name + ".setScheduler(schedulerObj)")
+    exec(model_name + ".setTime(timeObj)")
+    ...
+    cython_models.append(model_name)
+    reg(model_name)
+\end{verbatim}
+Here we can see that the model is compiled and imported. \emph{cython\_models} is a list containing the name of the custom models, used when the software has to check if a neuron is normal or custom. The final step is to actually register the model into the system and is accomplished by the \emph{reg} function, which actually corresponds to the \emph{register\_cython\_model} method contained in the \emph{cynest/cynestkernel.cpp} file. The other instructions contained in exec statements will be discussed in later sections. \\
+
+When a new model instance is created, NEST will search that particular model among its classes. But how to know if a model has a corresponding class (i.e., if it exists)? The \emph{models/modelsmodule.cpp} class provides the answer. Every new model is registered in the \textbf{models dictionary}, so that when a new instance has to be created, NEST just checks in this dictionary, looks for that particular model and creates the corresponding class object.\\
+In order to register a new model, a code such this has to be written :
+\begin{verbatim}
+	register_model<iaf_cond_alpha>(net_, "iaf_cond_alpha");
+\end{verbatim}
+Here, the first \emph{iaf\_cond\_alpha} corresponds to the class name, whereas the second one corresponds to the string pointing to that particular class.\\
+Therefore, the \emph{register\_cython\_model} method, which is actually located in the \emph{cynest/cython\_neuron.cpp} file, finally calls a statement like this:
+\begin{verbatim}
+	register_model<cython_neuron>(net_, model_name);
+\end{verbatim}
+For more information, look to the \emph{models/modelsmodule.cpp} and \emph{cynest/cython\_neuron.cpp} files.
+
+\subsection{Neuron Creation}
+After a neuron is registered, new instances are created with the \emph{cynest.Create(..)} method.
+Here, the main task is to check whether the neuron is a normal or a custom one, as well as sending the model to the c++ class if it is the case:
+\begin{verbatim}
+if model in cython_models:
+    for i in ids:
+        exec("tmpobj___ = " + model + "." + model + "()")
+        SetStatus([i], {'pyobject':tmpobj___})
+\end{verbatim}
+The function actually creates an intermediate object corresponding to the custom modeland gives this temporary object to the neuron on the c++ side. Do not forget that for every custom neuron there is, in addition to the python model, also the corresponding c++ class, which always is \emph{cython\_neuron.cpp}.
+
+\subsection{Python - C++ Transformation}
+The last step before the \emph{cython\_neuron} class can access a functional object is to transform it from Python to C++. Normally, builtin types are already handled by CyNEST, but the need for an additional handling system arises. \\
+Python objects are translated into Datums in the \emph{cynest/cynestkernel.cpp} file, precisely in the \emph{PyObject\_as\_Datum} method. Here is an example :
+\begin{verbatim}
+if (PyFloat_Check(pObj)) // object is float
+    return new DoubleDatum(PyFloat_AsDouble(pObj));
+\end{verbatim}
+Using the C/Python API, one can access python objects, check their type and extract their values.\\
+The key idea is therefore to create a new type of Datum, \textbf{PyObjectDatum}, which will handle the model (we assume therefore that whenever an object has not a builtin type, it is a neuron model. This is of course not true and checks should be provided. That will be done in another version). Indeed, if no builtin type has not been detected, we simply englobe the python object into a PyObjectDatum one :
+\begin{verbatim}
+return new PyObjectDatum(pObj);
+\end{verbatim}
+
+
+
+\section{C++ Side}
+This section deals with the C++ side and the ways the code is optimized for achieving very little performance loss.
+
+\subsection{cython\_neuron Class}
+Every custom model is handled by the \emph{cython\_neuron} class, which contains the translated object corresponding to a PyObjectDatum object.\\
+Each time one of the custom methods is called, this class will class the apposite method of the PyObjectDatum object, which is contained in the status\_ dictionary. Here is an example:
+\begin{verbatim}
+if(state_->known(Name("pyobject"))) {
+    (*state_)[Name("pyobject")]->
+         call_status_method(std::string("setStatus"), &state_);
+}
+\end{verbatim}
+The calibrate method is handled more or less the same way:
+\begin{verbatim}
+if(state_->known(Name("pyobject"))) {
+    pyObj = &(*(*state_)[Name("pyobject")]);
+	  
+    ...
+    (*state_)[Name("pyobject")]->
+                     call_method(std::string("calibrate"));
+}
+\end{verbatim}
+As one can see, the \emph{pyobject} element is accessed and the calibrate method is called. \emph{pyObj} is extracted and then used during the update for the purpose of efficiency (no element lookup).
+
+\subsection{Update Optimization with Standard Parameters}
+When a neuron calls one of the cython neuron (element \emph{pyobject} of \emph{status\_}) functions, such as \emph{calibrate} or \emph{update}, the parameters contained in \emph{status\_} have to be passed to the corresponding cython neuron. The naive approach of doing that is by copying them into the cython neuron, calling the corresponding function and retry them back.\\
+This could work for \emph{calibare}, but not for \emph{update} as it is called many times and this approach would slow down the system. \\
+Furthermore, as one can realize, during a simulation the only important constantly updated parameters by the system are :\\
+\begin{itemize}
+\item currents
+\item in\_spikes
+\item ex\_spikes
+\item t\_lag
+\item spike
+\end{itemize}
+These are called \textbf{Standard Parameters} and are the only one worth copying in the cython neuron before calling the corresponding function.\\
+The best way of speeding up the parameter passing is by giving to the cython neuron direct pointers to these values. This is done during the calibration:
+\begin{verbatim}
+// Pointers to Standard Parameters passing
+(*state_)[Name("pyobject")]->putStdParams(&currents, 
+                  &in_spikes, &ex_spikes, &t_lag, &spike);
+\end{verbatim}
+Therefore, the cython neuron will change the values pointed by these pointers without making any copy, thus speeding up the system. \\ \\
+
+The update method has been highly optimized:
+\begin{verbatim}  
+for ( long_t lag = from ; lag < to ; ++lag )
+  {
+	*currents = B_.currents_.get_value(lag);
+    *in_spikes = B_.in_spikes_.get_value(lag); // arriving in spikes
+    *ex_spikes = B_.ex_spikes_.get_value(lag); // arriving ex spikes
+    *t_lag = lag;
+
+    if(this->optimized) {
+        pyObj->call_update_optimized();
+    }
+    else {
+        pyObj->call_update();
+    }
+
+    // threshold crossing
+    if (*spike)
+    {
+      ...
+    }
+    ...
+  }
+\end{verbatim}
+There is no lookup of the \emph{status\_} dictionary as well as any unimportant test. The Standard Parameters values are directly changed.
+
+\subsection{Handling the Standard Parameters pointers}
+How are the Standard Parameters pointers extracted? This is done in the \emph{putStdParams} method of the \emph{PyObjectDatum} object:
+\begin{verbatim}
+void putStdParams(double** curr, double** is, 
+                              double** es, long** tl, long** sp) {
+    ...
+	// numeric conversion in order to create a long variable 
+	// containing the address of the std params 
+	*curr = currents = PyInt_AsLong(
+	          PyObject_CallMethod(this->pyObj, "getPCurrents", NULL));
+\end{verbatim}
+The object makes therefore two copies of the pointer, one for its own use and the other for the c++ neuron (which has to modify the values during the update). The \emph{getPCurrents} method is contained in the \emph{Neuron.pyx} file and looks like this:
+\begin{verbatim}
+cpdef getPCurrents(self):
+    return <long>(&(self.currents))
+\end{verbatim}
+Hence the fact that a pointer is nothing else than an integer value representing the variable address is used. This approach is mandatory since there is no possibility to directly pass a long pointer through python to c++. This is some sort of cast allowing python to see the address just like a normal integer.
+
+
+
+\subsection{Function pointers Optimization}
+The last optimization concerns the cython neuron function pointer itself. Instead of calling a function like \emph{PyObject\_CallMethod} in order to access the model's methods, one can extract the pointer directly:
+\begin{verbatim}
+PyMethodDef* updateRef = getUpdateRef(pyObj->ob_type->tp_methods);
+if(updateRef != NULL) {
+    this->updateFct = updateRef->ml_meth;
+}
+\end{verbatim}
+Now it is possible to directly call \emph{updateFct} instead of using the Python calling mechanism. This increases the speed and has another important consequence: there isn't any need of the GIL. This latter prevents threads from accessing the same ressources. It is important when using the normal calling convension, but now the update method looks like:
+\begin{verbatim}
+void call_update_optimized() {
+    updateFct(this->pyObj, NULL);
+}
+\end{verbatim}
+The drawback is that the model cannot use any python object. That means the user can only create pure C members. \\
+The solution is therefore to provide two possibilities (see User Documentation) and calling either the previous function or this one:
+\begin{verbatim}
+void call_update() {
+    PyGILState_STATE s = PyGILState_Ensure();
+	
+    updateFct(this->pyObj, NULL);
+
+    PyGILState_Release(s);
+}
+\end{verbatim}
+
+
+
+\subsection{Handling the parameters passing}
+The last task \emph{PyObjectDatum} has to accomplish is the parameter passing during \emph{getStatus} and \emph{setStatus}. This is done by the \emph{call\_status\_method}.\\
+\begin{itemize}
+\item When setting the parameters, a new python dictionary has to be created, filled with the elements of \emph{status\_} (after having been correctly translated by CyNEST) and given to the cython neuron \emph{setStatus} method. Note that we do not want to translate every \emph{status\_} element because the cython neuron doesn't care about general parameters. The other reason is that we, of course, do not want to translate the cython neuron as well (remember it is included in the \emph{status\_} dictionary)!
+
+\item When getting the parameters, a new python dictionary is received by the \emph{getStatus} method of the cython neuron. The content must then update the \emph{status\_} dictionary. The final step is to also include the Standard Parameters.
+\end{itemize}
+For the purpose of completeness, here is an example showing the \emph{getStatus} operation:
+\begin{verbatim}
+// looping through the received python dictionary
+while (PyDict_Next(dict, &pos, &key, &subPyObj)) 
+{
+    (**status)[PyString_AsString(key)] = 
+                 dataConverter.objectToDatum(subPyObj);
+}
+// std params updating
+...
+\end{verbatim}
+
+
+\section{Special Objects}
+Sometimes, a neuron model needs some special information from the system, such as simulation parameters. These values represent time units, simulation delays, ect...\\
+Therefore, the system has to allow the final user to access these variables and this is achieved by what are called \textbf{Special Objects}. \\
+When writing a normal C++ model, these features are provided by the \emph{Time} and \emph{Scheduler} classes. Therefore, a way in order to make them available from the Python side (from the custom model) is necessary. The purpose is to emulate commands such as :
+\begin{verbatim}
+    Scheduler::get_min_delay()
+
+    Time::get_resolution().get_ms()
+
+    Time(Time::step(steps)).get_tics()
+\end{verbatim}
+The first step for emulating those classes is defining them on the Cython side (\emph{cynest\/classes.pxd}):
+\begin{verbatim}
+cdef extern from "time_scheduler.h":
+    cdef cppclass Time:
+        long get_tics()
+        long get_steps()
+        ...
+
+    cdef cppclass UnitManager:
+        UnitManager(int, long)
+        UnitManager(int, double)
+        Time generateTime()
+
+cdef extern from "time_scheduler.h" namespace "nest::Time":
+    Time get_resolution()
+    void set_resolution(double)
+    ...
+    
+cdef extern from "time_scheduler.h" namespace "nest::Scheduler":
+    unsigned int get_modulo(unsigned int)
+    unsigned int get_slice_modulo(unsigned int)
+    ...
+\end{verbatim}
+The first class is the corresponding Time class, whereas the other one will be discussed soon. One can also note that static methods are defined as well. For a list of all the available methods, please consult the user documentation. \\ \\
+
+If the C++ \emph{nestkernel\/nest\_time.h} file is read, one can see that the Time class contains other nested classes: tic, step, ms and ms\_stamp. These are different units. Now, sadly Cython cannot handle nested classes, therefore another way for extracting them is necessary. That's why the \textbf{UnitManager} class has been created. The only important function of these units is to enable the creation of a Time object, like in the following example:
+\begin{verbatim}
+Time::step(steps).get_tics()
+\end{verbatim}
+Therefore, a UnitManager object can be created by giving it a code corresponding to a particular unit:
+\begin{itemize}
+\item tic       : 1
+\item step      : 2
+\item ms        : 3
+\item ms\_stamp : 4
+\end{itemize}
+Once the need for a Time object arises, the \emph{generateTime} method can be called, which creates a Time object according to the internal state of the UnitManager object (which contains the previously created unit). \\
+This is used by the wrapper cython units contained in the \emph{cynest\/datamanager.pyx} file:
+\begin{verbatim}
+cdef class Unit:
+    cdef classes.UnitManager *thisptr
+
+    def __dealloc__(self):
+        del self.thisptr
+
+cdef class tic(Unit):
+    def __cinit__(self, t):
+        self.thisptr= new classes.UnitManager(1, <long>t)
+
+    def create(self, t):
+        return tic(t)
+        
+... # other units
+\end{verbatim}
+The Time wrapper class uses the UnitManager in order to create a \emph{classes.Time} object (other methods are also shown):
+\begin{verbatim}
+cdef class Time:
+    cdef classes.Time thisptr
+
+    def __cinit__(self, Unit t):
+        self.thisptr = t.thisptr[0].generateTime()
+
+    cdef Time getTime(self, classes.Time t):
+        cdef Time tm = Time(ms(0.0))
+        tm.thisptr = t
+        return tm
+
+    def create(self, t):
+        return Time(t)
+
+    def get_tics(self):
+        return self.thisptr.get_tics()
+
+    def get_steps(self):
+        return self.thisptr.get_steps()
+
+    def succ(self):
+        return self.getTime(self.thisptr.succ()) 
+    ...
+
+# static methods
+
+    def get_resolution(self):
+        return self.getTime(classes.get_resolution())
+        
+    def set_resolution(self, d):
+        classes.set_resolution(d)
+
+    ...
+        
+cdef class Scheduler:
+    def get_modulo(self, v):
+        return classes.get_modulo(v)
+
+    ...
+\end{verbatim}
+Note that \emph{t.thisptr[0]} corresponds to the UnitManager object. Both non-static and static methods are treated the same way, which makes further things easier. \\ \\
+
+Now comes a very important key idea. Since every model is automatically linked and compiled by \emph{pyximport}, it cannot access the project definitions, therefore the custom model cannot see the Time and Scheduler classes. There is however the possibility to pass the model a generic object and to call its methods, if they are known. \\
+The idea is to directly pass to each model a new Time and Scheduler (as well as an object for every unit) object, so that it can access all the methods. However, since the user can normally create as many Time objects as he wants, the \emph{create} method has been implemented. It actually creates a new object instance. We can therefore create a new instance from an existing instance and that is the key for avoiding to know the class definition. \\ \\
+
+The last step is to create wrapper classes on the model side, therefore contained in the \emph{"installation path"\/include\/Neuron.pyx}. In order to contain all the imported generic objects, a manager has been created:
+\begin{verbatim}
+cdef class ObjectManager:
+    cdef object schedulerObj
+    cdef object timeObj
+    ...
+
+    def setScheduler(self, obj):
+        self.schedulerObj = obj
+
+    def setTime(self, obj):
+        self.timeObj = obj
+        
+    ...
+
+cdef ObjectManager objectManager = ObjectManager()
+
+
+# These methods are called from the project in order to
+# fill the different imported objects
+
+def setScheduler(obj):
+    objectManager.setScheduler(obj)
+
+def setTime(obj):
+    objectManager.setTime(obj)
+...
+\end{verbatim}
+Note that an object of every unit has also been created (not shown here). The project side will transfer objects using, for example, the \emph{setScheduler} function. \\
+A wrapper class for each unit is created:
+\begin{verbatim}
+cdef class Unit:
+    cdef object ob
+
+cdef class tic(Unit):
+    def __cinit__(self, t):
+        self.ob = objectManager.ticObj.create(t)
+...
+\end{verbatim}
+Where t represents the unit value and is given to the \emph{create} method in order to generate a new object instance. \\
+The Time wrapper class is very straighforward:
+\begin{verbatim}
+cdef class Time:
+    cdef object time_ob
+
+    def __cinit__(self, Unit t):
+        self.time_ob = objectManager.timeObj.create(t.ob)
+
+    def get_tics(self):
+        return self.time_ob.get_tics()
+    ...
+\end{verbatim}
+Finally, in order to distinguish between static and non-static methods, a protocol has been followed, where each static method is also available as a direct function:
+\begin{verbatim}
+...
+cpdef Time_neg_inf():
+    return objectManager.timeObj.neg_inf()
+
+cpdef Scheduler_get_modulo(v):
+    return objectManager.schedulerObj.get_modulo(v)
+...
+\end{verbatim}
+Note that the Time\_ or Scheduler\_ prefixes are defined in order to specify that originally these are static functions rather than normal instance methods. \\ \\
+
+As an example, the user can translate the previously mentioned commands by writing:
+\begin{verbatim}
+    Scheduler_get_min_delay()
+
+    Time_get_resolution().get_ms()
+
+    Time(step(steps)).get_tics()
+\end{verbatim}
+
+\section{Performances}
+The system has been tested during a single-threaded simulation of 40 ms concerning over 1000 randomly connected neurons and compared to their native and SLI counterparts. The results are:
+\begin{itemize}
+\item Native neuron: realtime factor is 0.3254
+\item SLI neuron: realtime factor is 0.0046
+\item Cython neuron: realtime factor is 0.2711
+\end{itemize}
+We can therefore conclude that the cython neuron is only about 20\% slower than the native version, whereas the SLI neuron is up to 70 times slower. Note that the highly optimized version has been tested, the other one being 70\% slower.\\
+Note that during different test trials, values could slightly change because of the random factor introduced in the network.\\
+
+\end{document}

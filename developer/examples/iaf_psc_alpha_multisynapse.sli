@@ -1,0 +1,86 @@
+% test for iaf_psc_alpha_multisynapse
+% 
+% Writes current data of a neuron with four 
+% different time constants.
+%
+% Shown are several ways of setting the time constant(s)
+
+ResetKernel
+
+/model /iaf_psc_alpha_multisynapse def
+
+/amperemeter Create /am Set
+am <<
+    /withgid false
+    /to_file true
+    /to_memory false
+    /interval 0.1
+    /precision 5 >> SetStatus
+    
+/spike_generator Create /sg Set
+sg << /spike_times [100.0] >> SetStatus
+
+model Create /npost Set
+
+
+% setting the time constant(s)
+% n_synapses is initially 0! If time constant(s)
+% is given, space must be allocated first with n_synapses!
+% Alternatively, time constants can be set without
+% preallocation when connectivity is finished (see below).
+%
+npost << /n_synapses 4 /tau_syn [2. 20. 60. 100.] >> SetStatus
+
+% setting only tau_syn would lead to an error because the
+% number of synapses is 0.
+%
+%npost << /tau_syn [2. 20. 60. 100.] >> SetStatus %% ERROR
+
+% This is ok, additionally created synapses are then
+% filled with default values (2.0ms).
+%
+%npost << /n_synapses 4 >> SetStatus
+
+/static_synapse /s1 CopyModel
+/static_synapse /s2 CopyModel
+/static_synapse /s3 CopyModel
+/static_synapse /s4 CopyModel
+
+
+% Set identical amplitudes for better comparison.
+% The numbers of given receptor-types are arbitrary
+% and do not lead to zero-filling.
+%
+% Due to the very high delays imposed here simulation time
+% becomes dramatically slow because buffers start to
+% leave the cache. Don't blame the model!
+/s1 << /weight 1.0 /delay 100.  /receptor_type 47    >> SetDefaults
+/s2 << /weight 1.0 /delay 200.  /receptor_type 11    >> SetDefaults
+/s3 << /weight 1.0 /delay 500.  /receptor_type 1     >> SetDefaults
+/s4 << /weight 1.0 /delay 1200. /receptor_type 9999  >> SetDefaults
+
+
+% Cycle through synapses and connect the presyaptic neuron.
+sg npost /s1 Connect
+sg npost /s2 Connect
+sg npost /s3 Connect
+sg npost /s4 Connect
+
+
+% Now that the neuron knows that it has four
+% synapses, it would suffice to just give the
+% different time constants without n_synapses here.
+% But still mind the array dimension!
+%
+%npost << /tau_syn [2. 20. 60. 100.] >> SetStatus
+
+% Resizing the synapses is ok, too. Increasing n_synapses has
+% no effect (no presynaptic neurons yet). By DEcreasing to 2 we'd
+% only consider the first two time constants (order-preserving)
+%
+%npost << /n_synapses 2 >> SetStatus
+
+% connect amperemeter
+am npost 1. 8. /static_synapse Connect
+
+2500 ms Simulate

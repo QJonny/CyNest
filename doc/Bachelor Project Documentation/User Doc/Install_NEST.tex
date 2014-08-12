@@ -1,0 +1,71 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% University/School Laboratory Report
+% LaTeX Template
+% Version 2.0 (4/12/12)
+%
+% This template has been downloaded from:
+% http://www.latextemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+% Original header:
+%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	DOCUMENT CONFIGURATIONS
+%----------------------------------------------------------------------------------------
+
+\documentclass{article}
+
+\usepackage{graphicx} % Allows the inclusion of images
+
+\title{How to Install CyNEST} % Title
+
+\author{Jonny \textsc{Quarta}} % Author name
+
+\date{\today} % Specify a date for the report
+
+\begin{document}
+
+\maketitle % Insert the title, author and date
+
+
+\setlength\parindent{0pt} % Removes all indentation from paragraphs
+
+\renewcommand{\labelenumi}{\alph{enumi}.} % Make numbering in the enumerate environment by letter rather than number (e.g. section 6)
+
+%----------------------------------------------------------------------------------------
+%	SECTION 1
+%----------------------------------------------------------------------------------------
+
+
+In order to correctly install CyNEST, you must achieve the following very simple operations :
+\\ \\
+\begin{itemize}
+\item Place your terminal in the \emph{nest-cynest} folder (where the NEST code is situated).
+
+\item Execute \textbf{./bootstrap.sh}.\\ This will run the automake, autoconf and libtoolize tools, generating the \emph{configure} file.
+
+\item Leave the current directory and create another one (the name is ininfluent), then enter this new folder.
+
+\item Call the \emph{configure} file in the \emph{nest-cynest} folder.\\Hence type \\ \textbf{../nest-cynest/configure --prefix="install-dir" - -enable-cynest}\\ in your terminal, where \emph{install-dir} is the directory where you want to install CyNEST.
+
+\item Type \textbf{make -j4} and then \textbf{make install} in the terminal. This will compile and install CyNEST on the computer. 
+
+\item Configure the paths in the terminal. You can do that by modifying, for example, the \emph{/home/"user"/.bashrc} file. Add the following lines:
+\begin{verbatim}
+export PATH="[installation path of CyNEST]/bin:$PATH"
+
+export PYTHONPATH="[installation path of CyNEST]/lib/
+                    python2.7/site-packages:$PYTHONPATH"
+\end{verbatim}
+
+\item It is now possible to load python and, by typing \textbf{import cynest} in the python terminal, CyNEST can be used.
+
+
+\end{itemize}
+
+\end{document}

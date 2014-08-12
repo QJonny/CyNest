@@ -1,0 +1,223 @@
+#!/usr/bin/env python
+#
+# Setup script for the Python bindings to NEST (Cynest)
+# 
+# Author: Jochen Martin Eppler
+# Date: 05/04/2007
+#
+# Rewritten to make use of Python's distutils package, 01/31/08
+# Sven Schrader, Jochen Martin Eppler
+#
+
+import sys, os
+
+#from string import split # not needed for python >=2.7
+from sys import exit
+import distutils.sysconfig as sysc
+from Cython.Distutils import build_ext
+from Cython.Build import cythonize
+
+
+cxx                 = '@CXX@'
+sources             = ['@PKGSRCDIR@/cynest/datumtopythonconverter.cpp']
+
+# -fpermissive needed for ndarrayobject.h
+# to compile due to comma terminated enumerations
+pre_cxxflags = '@AM_CXXFLAGS@ @PYNEST_CXXFLAGS@'
+
+pre_includes = [
+    '@PKGSRCDIR@/libnestutil',
+    '@PKGSRCDIR@/librandom',
+    '@PKGSRCDIR@/sli',
+    '@PKGSRCDIR@/nestkernel',
+    '@PKGBUILDDIR@/libnestutil',
+    '@PKGBUILDDIR@/nest',
+    '@MUSIC_INCLUDE@',
+    '@MPI_INCLUDE@',
+    '@GSL_CFLAGS@',
+    '@INCLTDL@']
+
+pre_ldflags = [
+    '-L@PKGBUILDDIR@/nestkernel/.libs',
+    '-L@PKGBUILDDIR@/librandom/.libs',
+    '-L@PKGBUILDDIR@/libnestutil/.libs',
+    '-L@PKGBUILDDIR@/sli/.libs',
+    '@LINKED_USER_MODULES@',
+    '@LINKED_MODULES@',
+    '-lnest',
+    '-lrandom',
+    '-lnestutil',
+    '-lsli',
+    '@SLI_LIBS@',
+    '@GSL_LIBS@',
+    '@MUSIC_LIBS@',
+    '@MPI_LIBS@',
+    '-lpthread',
+    '@LIBLTDL@',
+    '@LIBADD_DL@']
+
+include_dirs         = []
+library_dirs         = []
+libraries            = []
+define_macros        = []
+setup_flags          = []
+extra_objects        = []
+cxxflags             = []
+extra_link_args      = ['@OPENMP_CXXFLAGS@']
+runtime_library_dirs = []
+
+for incs in pre_includes :
+    for inc in incs.split(' '):
+        if len(inc) > 1:
+            if '-i' in inc.lower():
+                include_dirs.append(inc.replace('-I', '').replace('-i',''))
+            else:
+                include_dirs.append(inc)
+
+for libs in pre_ldflags :
+    for lib in libs.split(' '):
+        if len(lib) > 1:
+            if lib[1] == 'L' :
+                library_dirs.append(lib.replace('-L', ''))
+            if lib[1] == 'l' :
+                libraries.append(lib.replace('-l', ''))
+            # read the libtool .la file and extract name and path
+            if lib.endswith('.la'):
+                filename=lib.replace('$(top_builddir)','@PKGBUILDDIR@')
+                try:
+                    fp = open(filename, 'r')
+                    dlname=''
+                    libdir=''
+                    line = fp.readline()
+                    while line:
+                        # dlname: library name
+                        if len(line) > 7 and line.startswith('dlname=') and dlname=='':
+                            dlname = line[8:-2]
+                        # old_library: library name (static module)
+                        if len(line) > 12 and line.startswith('old_library=') and dlname=='':
+                            dlname = line[13:-2]
+                        # ...and its directory
+                        if len(line) > 7 and line.startswith('libdir='):
+                            libdir = line[8:-2]
+                        
+                        line = fp.readline()
+                    fp.close()
+
+                    # hard-code library path to avoid setting environment
+                    if libdir:
+                        runtime_library_dirs += [libdir]
+                        
+                    # full location of the object file
+                    if dlname:
+                        extra_objects += [ os.path.dirname(filename) + '/.libs/' + dlname ]
+                except:
+                    print('Could not parse file', filename)
+                    
+                
+for flag in pre_cxxflags.strip().split(' '):
+    if len(flag) > 1:
+        cxxflags += [flag]
+
+        
+if 'build' in sys.argv :
+    setup_flags += ['--build-base=@PKGBUILDDIR@/cynest/build']
+
+# look for numpy libs and change flags/macros accordingly
+# this dependency cannot be detected by distutils automatically
+# HAVE_NUMPY must be set both in build and install mode
+try:
+    import numpy
+    if 'arrayobject.h' in os.listdir(numpy.__path__[0]+ '/core/include/numpy'):
+        include_dirs  += [ numpy.__path__[0] + '/core/include']
+        define_macros += [('HAVE_NUMPY', None)]
+    else:
+        print('*** No numpy headers installed ***')
+except ImportError:
+        print('*** No numpy package installed ***')
+
+if 'clean' in sys.argv :
+    # 'make clean' does not work properly; python bug 510186
+    print('*** running clean, ignore warnings about nonexistent directories ***')
+
+sys.argv = sys.argv + setup_flags
+
+# Change the compiler and linker:
+# replace first argumemnt with compiler-variable 'cxx'
+vars = sysc.get_config_vars()
+for key in ['CC','CXX']:
+    value = vars[key].split()
+    value[0] = cxx
+    if sys.platform == 'darwin':
+        value[0] += ' -undefined dynamic_lookup'
+    vars[key] = ' '.join(value)
+
+# The following extra treatment of the linker is needed at least on MacOS
+# to allow python to discover names inside a module during runtime.
+for key in ['LDSHARED', 'LINKCC']:
+    value = vars[key].split()
+    value[0] = cxx+'-Wl,-F.'
+    if sys.platform == 'darwin':
+        value[0] += ' -bundle -undefined dynamic_lookup'
+    vars[key] = ' '.join(value)
+
+# the following compiler options are not accepted by newer g++ versions
+# so we remove them
+for opt in ["-Wstrict-prototypes", "-Wno-long-double", "-no-cpp-precomp"]:
+    vars["CFLAGS"]=sysc.get_config_var("CFLAGS").replace(opt, "")
+
+
+# from here, it's distutils' way
+from distutils.core import setup, Extension
+
+# an empty string is also interpreted as a library to link against.
+if extra_link_args == ['']:
+    extra_link_args = []
+
+extdict = {'include_dirs'       : include_dirs,
+           'libraries'          : libraries,
+           'library_dirs'       : library_dirs,
+           #           'sources'            : sources,
+           'extra_compile_args' : cxxflags,
+           'extra_link_args'    : extra_link_args,
+           'define_macros'      : define_macros,
+           'extra_objects'      : extra_objects}
+
+
+# set linker-path correctly when using mpicc.
+# distutils sets wrong parameters there. See Python bugs #445902, #1254718
+if runtime_library_dirs != [] :
+    if 'mpi' in cxx.lower() or cxx.lower()[-3:] in ('gcc', 'g++') :
+        extdict['extra_link_args'] += ['-Wl,-rpath,' + dir for dir in runtime_library_dirs]
+    else :
+        extdict['runtime_library_dirs'] = runtime_library_dirs
+
+
+# setup(name         = 'Cynest',
+#       version      = '@SLI_VERSION@',
+#       description  = 'Cynest provides Python bindings for NEST',
+#       author       = 'The NEST Initiative',
+#       url          = 'http://www.nest-initiative.org',     
+#       packages     = ['cynest', 'cynest.tests'],
+#       package_dir  = {'cynest': '@PKGSRCDIR@/cynest/nest'},
+#       package_data = {'cynest': ['cynest-init.sli']},
+#       ext_modules  = cythonize("@PKGSRCDIR@/cynest/cynest_api.pyx",
+#                                sources= ['@PKGSRCDIR@/cynest/pynestkernel2.cpp',
+#                                '@PKGSRCDIR@/cynest/pydatum.cpp',
+#                                '@PKGSRCDIR@/cynest/datumtopythonconverter.cpp'],
+#                                language="c++"))
+
+setup(name         = 'Cynest',
+      version      = '@SLI_VERSION@',
+      description  = 'Cynest provides Python bindings for NEST',
+      author       = 'The NEST Initiative',
+      url          = 'http://www.nest-initiative.org',     
+      packages     = ['cynest','cynest.tests'],
+      package_dir  = {'cynest': '@PKGSRCDIR@/cynest/nest'},
+      package_data = {'cynest': ['pynest-init.sli']},
+      cmdclass = {'build_ext': build_ext},
+      ext_modules  = [Extension("cynest.kernel",
+                               sources= ["@PKGSRCDIR@/cynest/kernel.pyx",
+                                         '@PKGSRCDIR@/cynest/cynestkernel.cpp',
+                                         '@PKGSRCDIR@/cynest/datumtopythonconverter.cpp'],
+                               language="c++",**extdict)])
+

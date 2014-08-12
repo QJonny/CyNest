@@ -1,0 +1,357 @@
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2012.11.29)  4 JUN 2013 17:03
+entering extended mode
+ %&-line parsing enabled.
+**project_report.tex
+(./project_report.tex
+LaTeX2e <2009/09/24>
+Babel <v3.8l> and hyphenation patterns for english, usenglishmax, dumylang, noh
+yphenation, loaded.
+(/usr/share/texmf-texlive/tex/latex/base/article.cls
+Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
+(/usr/share/texmf-texlive/tex/latex/base/size10.clo
+File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
+)
+\c@part=\count79
+\c@section=\count80
+\c@subsection=\count81
+\c@subsubsection=\count82
+\c@paragraph=\count83
+\c@subparagraph=\count84
+\c@figure=\count85
+\c@table=\count86
+\abovecaptionskip=\skip41
+\belowcaptionskip=\skip42
+\bibindent=\dimen102
+)
+(/usr/share/texmf-texlive/tex/latex/graphics/graphicx.sty
+Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-texlive/tex/latex/graphics/keyval.sty
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks14
+)
+(/usr/share/texmf-texlive/tex/latex/graphics/graphics.sty
+Package: graphics 2009/02/05 v1.0o Standard LaTeX Graphics (DPC,SPQR)
+
+(/usr/share/texmf-texlive/tex/latex/graphics/trig.sty
+Package: trig 1999/03/16 v1.09 sin cos tan (DPC)
+)
+(/etc/texmf/tex/latex/config/graphics.cfg
+File: graphics.cfg 2009/08/28 v1.8 graphics configuration of TeX Live
+)
+Package graphics Info: Driver file: pdftex.def on input line 91.
+
+(/usr/share/texmf-texlive/tex/latex/pdftex-def/pdftex.def
+File: pdftex.def 2010/03/12 v0.04p Graphics/color for pdfTeX
+\Gread@gobject=\count87
+))
+\Gin@req@height=\dimen103
+\Gin@req@width=\dimen104
+)
+(./project_report.aux)
+\openout1 = `project_report.aux'.
+
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 31.
+LaTeX Font Info:    ... okay on input line 31.
+ (/usr/share/texmf-texlive/tex/context/base/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+\scratchcounter=\count88
+\scratchdimen=\dimen105
+\scratchbox=\box26
+\nofMPsegments=\count89
+\nofMParguments=\count90
+\everyMPshowfont=\toks15
+\MPscratchCnt=\count91
+\MPscratchDim=\dimen106
+\MPnumerator=\count92
+\everyMPtoPDFconversion=\toks16
+)
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <12> on input line 33.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <8> on input line 33.
+LaTeX Font Info:    External font `cmex10' loaded for size
+(Font)              <6> on input line 33.
+
+Underfull \hbox (badness 10000) in paragraph at lines 41--43
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 44--49
+
+ []
+
+[1
+
+{/var/lib/texmf/fonts/map/pdftex/updmap/pdftex.map}]
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 54.
+
+(/usr/share/texmf-texlive/tex/latex/base/omscmr.fd
+File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+)
+LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 54.
+
+<Ressources/Interface_Structure.png, id=11, 918.43124pt x 488.82625pt>
+File: Ressources/Interface_Structure.png Graphic file (type png)
+
+<use Ressources/Interface_Structure.png> [2 <./Ressources/Interface_Structure.p
+ng (PNG copy)>] [3]
+Underfull \hbox (badness 10000) in paragraph at lines 114--119
+
+ []
+
+[4]
+Underfull \hbox (badness 10000) in paragraph at lines 137--138
+
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 143--143
+[]\OT1/cmtt/m/n/10 cythonCalibrate = (void (*)(std::string, int, Datum*))result
+Calibrate;[] 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 144--146
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 144--146
+
+ []
+
+[5]
+Missing character: There is no Ã in font cmr10!
+Missing character: There is no ¯ in font cmr10!
+
+Underfull \hbox (badness 10000) in paragraph at lines 174--177
+
+ []
+
+[6]
+Overfull \hbox (1.49698pt too wide) in paragraph at lines 191--191
+[]\OT1/cmtt/m/n/10 IntegerDatum* sI = (IntegerDatum*)(*state_)[names::spike].da
+tum();[] 
+ []
+
+
+Overfull \hbox (22.4968pt too wide) in paragraph at lines 191--191
+[]\OT1/cmtt/m/n/10 cythonStdVars(get_name(), neuronID, sI->get_p_val(), isD->ge
+t_p_val(),[] 
+ []
+
+
+Overfull \hbox (16.66698pt too wide) in paragraph at lines 211--212
+\OT1/cmr/m/n/10 The wrap-per class for \OT1/cmr/m/it/10 Cytho-nEn-try \OT1/cmr/
+m/n/10 is sit-u-ated in the \OT1/cmr/m/it/10 cynest/dynamicneuronsync.pyx
+ []
+
+[7]
+Overfull \hbox (51.91518pt too wide) in paragraph at lines 233--234
+\OT1/cmr/m/n/10 When a user uses CyNEST within a Python ter-mi-nal and writes \
+OT1/cmr/m/it/10 cynest.Create("myneuron")\OT1/cmr/m/n/10 ,
+ []
+
+
+Overfull \hbox (11.99689pt too wide) in paragraph at lines 244--244
+[]             \OT1/cmtt/m/n/10 libc = PyDLL(spFct.getModelsFolder() + "/" + n 
++ ".so")[] 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 245--250
+
+ []
+
+[8]
+Overfull \hbox (8.63585pt too wide) in paragraph at lines 261--262
+\OT1/cmr/m/n/10 Stan-dard Pa-ram-e-ters are used is when the user calls the \OT
+1/cmr/m/it/10 cynest.GetStatus(...)
+ []
+
+[9]
+Overfull \hbox (10.74715pt too wide) in paragraph at lines 281--281
+ []    \OT1/cmtt/m/n/10 loadedNeurons[neuronName].setStdVars(neuronID, sp.spike
+[0],[] 
+ []
+
+
+Overfull \hbox (42.24687pt too wide) in paragraph at lines 281--281
+ []         \OT1/cmtt/m/n/10 sp.in_spikes[0], sp.ex_spikes[0], sp.currents[0], 
+sp.lag[0])[] 
+ []
+
+
+Overfull \hbox (0.24724pt too wide) in paragraph at lines 281--281
+ []    \OT1/cmtt/m/n/10 loadedNeurons[neuronName].getStdVars(neuronID, sIR, isD
+R,[] 
+ []
+
+
+Overfull \hbox (52.74678pt too wide) in paragraph at lines 307--307
+ []\OT1/cmtt/m/n/10 cdef public void setStdVars(int neuronID, long spike, doubl
+e in_spikes,[] 
+ []
+
+
+Overfull \hbox (26.49701pt too wide) in paragraph at lines 307--307
+ []            \OT1/cmtt/m/n/10 double ex_spikes, double currents, long lag) wi
+th gil:[] 
+ []
+
+[10]
+Overfull \hbox (63.24669pt too wide) in paragraph at lines 307--307
+ []\OT1/cmtt/m/n/10 cdef public void getStdVars(int neuronID, long* spike, doub
+le* in_spikes,[] 
+ []
+
+
+Overfull \hbox (42.24687pt too wide) in paragraph at lines 307--307
+ []            \OT1/cmtt/m/n/10 double* ex_spikes, double* currents, long* lag)
+ with gil:[] 
+ []
+
+
+Overfull \hbox (21.24706pt too wide) in paragraph at lines 318--318
+ []    \OT1/cmtt/m/n/10 cdef dict members = <dict>converter.datumToObject(param
+eters)[] 
+ []
+
+
+Overfull \hbox (73.7466pt too wide) in paragraph at lines 318--318
+ []    \OT1/cmtt/m/n/10 loadedNeurons[neuronName].setNeuronParams.argtypes = [c
+_int, py_object][] 
+ []
+
+
+Overfull \hbox (73.7466pt too wide) in paragraph at lines 318--318
+ []    \OT1/cmtt/m/n/10 loadedNeurons[neuronName].setNeuronParams(neuronID, py_
+object(members))[] 
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 319--322
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 319--322
+
+ []
+
+
+Overfull \hbox (10.74715pt too wide) in paragraph at lines 333--333
+ []\OT1/cmtt/m/n/10 cdef void retrieveNeuronMembers(bytes neuronName, int neuro
+nID,[] 
+ []
+
+[11]
+Overfull \hbox (15.9971pt too wide) in paragraph at lines 333--333
+ []           \OT1/cmtt/m/n/10 (loadedNeurons[neuronName].getNeuronParams(neuro
+nID))[] 
+ []
+
+
+Overfull \hbox (85.49625pt too wide) in paragraph at lines 361--361
+[]    \OT1/cmtt/m/n/10 Time createTime(int inputType, long longInputValue, doub
+le doubleInputValue) {[] 
+ []
+
+
+Overfull \hbox (74.99634pt too wide) in paragraph at lines 361--361
+[]    \OT1/cmtt/m/n/10 double get_ms(int inputType, long longInputValue, double
+ doubleInputValue) {[] 
+ []
+
+
+Overfull \hbox (38.24666pt too wide) in paragraph at lines 361--361
+[]    \OT1/cmtt/m/n/10 unsigned int get_scheduler_value(int outputValue, unsign
+ed int arg) {[] 
+ []
+
+[12]
+Underfull \hbox (badness 10000) in paragraph at lines 385--389
+
+ []
+
+
+Overfull \hbox (5.9221pt too wide) in paragraph at lines 385--389
+\OT1/cmr/m/n/10 The next step is to in-ter-face with Cython and this is done in
+ the \OT1/cmr/m/it/10 cynest/classes.pyx
+ []
+
+[13]
+Underfull \hbox (badness 10000) in paragraph at lines 426--430
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 426--430
+
+ []
+
+[14]
+Overfull \hbox (42.24687pt too wide) in paragraph at lines 435--435
+ []    \OT1/cmtt/m/n/10 ext_modules = [Extension("cython_neuron", ["cython_neur
+on.pyx"])][] 
+ []
+
+
+Overfull \hbox (15.9971pt too wide) in paragraph at lines 439--439
+ []    \OT1/cmtt/m/n/10 ext_modules = [Extension("MyNeuron", ["cython_neuron.py
+x"])][] 
+ []
+
+
+Overfull \hbox (2.56508pt too wide) in paragraph at lines 450--451
+\OT1/cmr/m/it/10 NEST[]Folder/cython[]models\OT1/cmr/m/n/10 , where NEST[]Folde
+r is the folder in which CyNEST
+ []
+
+[15] [16]
+Underfull \hbox (badness 10000) in paragraph at lines 485--491
+
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 485--491
+
+ []
+
+[17] [18] (./project_report.aux) ) 
+Here is how much of TeX's memory you used:
+ 941 strings out of 495061
+ 11897 string characters out of 1182620
+ 65569 words of memory out of 3000000
+ 4158 multiletter control sequences out of 15000+50000
+ 8710 words of font info for 31 fonts, out of 3000000 for 9000
+ 28 hyphenation exceptions out of 8191
+ 25i,6n,19p,614b,306s stack positions out of 5000i,500n,10000p,200000b,50000s
+</usr/share/texmf-texlive/fonts/type1/public/
+amsfonts/cm/cmbx10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm
+/cmbx12.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmcsc10.pf
+b></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr10.pfb></usr/shar
+e/texmf-texlive/fonts/type1/public/amsfonts/cm/cmr12.pfb></usr/share/texmf-texl
+ive/fonts/type1/public/amsfonts/cm/cmr17.pfb></usr/share/texmf-texlive/fonts/ty
+pe1/public/amsfonts/cm/cmsy10.pfb></usr/share/texmf-texlive/fonts/type1/public/
+amsfonts/cm/cmti10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm
+/cmtt10.pfb>
+Output written on project_report.pdf (18 pages, 210774 bytes).
+PDF statistics:
+ 97 PDF objects out of 1000 (max. 8388607)
+ 0 named destinations out of 1000 (max. 500000)
+ 6 words of extra memory for PDF output out of 10000 (max. 10000000)
+
